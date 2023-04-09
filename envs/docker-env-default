@@ -1,5 +1,5 @@
-DATABASE_URL=postgresql+asyncpg://postgres:postgres@db:5432/foo
+DATABASE_URL=postgresql://postgres_user:postgres_password@database:5432/foo
 
-POSTGRES_USER=postgres
-POSTGRES_PASSWORD=postgres
+POSTGRES_USER=postgres_user
+POSTGRES_PASSWORD=postgres_password
 POSTGRES_DB=foo
