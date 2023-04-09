@@ -10,6 +10,9 @@ pyclean () {
 run_linter () {
   echo ruff...
   ruff check .
+
+  echo flake8...
+  flake8 .
 }
 
 # Removing cache:

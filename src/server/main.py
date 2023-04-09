@@ -1,4 +1,7 @@
+from typing import Annotated
+
 from fastapi import FastAPI, Depends, HTTPException
+from fastapi.security import OAuth2PasswordBearer
 from sqlalchemy.orm import Session
 
 from server import crud, models, schemas
@@ -7,6 +10,8 @@ from server.database import SessionLocal, engine
 models.Base.metadata.create_all(bind=engine)
 
 app = FastAPI()
+
+oauth_scheme = OAuth2PasswordBearer(tokenUrl='token')
 
 
 def get_db():
@@ -33,6 +38,11 @@ def create_user(user: schemas.UserCreate, db: Session = Depends(get_db)):
 
 
 @app.get('/users/', response_model=list[schemas.User])
-def read_users(skip: int = 0, limit: int = 100, db: Session = Depends(get_db)):
+def read_users(
+        token: Annotated[str, Depends(oauth_scheme)],
+        skip: int = 0,
+        limit: int = 100,
+        db: Session = Depends(get_db),
+        ):
     users = crud.get_users(db, skip=skip, limit=limit)
     return users
