@@ -28,6 +28,7 @@ class UserCreate(UserBase):
 
 class User(UserBase):
     id: int
+    hashed_password: str
     is_active: bool
     items: list[Item] = []
 

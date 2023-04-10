@@ -1,48 +1,21 @@
-from typing import Annotated
+from fastapi import FastAPI
 
-from fastapi import FastAPI, Depends, HTTPException
-from fastapi.security import OAuth2PasswordBearer
-from sqlalchemy.orm import Session
-
-from server import crud, models, schemas
-from server.database import SessionLocal, engine
-
-models.Base.metadata.create_all(bind=engine)
-
-app = FastAPI()
-
-oauth_scheme = OAuth2PasswordBearer(tokenUrl='token')
+from server.db.database import engine
+from server.settings.config import settings
+from server.settings.security import router as security_router
+from server.users import models
+from server.users.views import router as views_router
 
 
-def get_db():
-    db = SessionLocal()
-    try:
-        yield db
-    finally:
-        db.close()
+app = FastAPI(
+    title='Dentorbia Backend'
+)
 
 
-@app.get('/')
-async def index():
-    return {
-        'Hello world': 'Guten Tag der Welt'
-    }
+@app.on_event('startup')
+def on_startup():
+    models.Base.metadata.create_all(bind=engine)
 
 
-@app.post('/users/', response_model=schemas.User)
-def create_user(user: schemas.UserCreate, db: Session = Depends(get_db)):
-    db_user = crud.get_user_by_email(db, email=user.email)
-    if db_user:
-        HTTPException(status_code=400, detail='Email already reqistered')
-    return crud.create_user(db=db, user=user)
-
-
-@app.get('/users/', response_model=list[schemas.User])
-def read_users(
-        token: Annotated[str, Depends(oauth_scheme)],
-        skip: int = 0,
-        limit: int = 100,
-        db: Session = Depends(get_db),
-        ):
-    users = crud.get_users(db, skip=skip, limit=limit)
-    return users
+app.include_router(views_router, prefix=settings.API_VERSION)
+app.include_router(security_router, prefix=settings.API_VERSION)
